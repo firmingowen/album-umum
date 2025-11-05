@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <link rel="icon" type="image/x-icon" href="logo_pelindo-removebg-preview.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Album Kenangan</title>
+  <style>
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary) transparent;
+      
+  scroll-behavior: smooth;
+    }
+    :root {
+      --radius: 16px;
+      --shadow: 0 6px 20px rgba(0,0,0,0.12);
+      --primary: #0b76ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Poppins", sans-serif;
+      background-image: linear-gradient(rgba(4,9,30,0.7)),url('tkj melesat.jpg');
+      background-attachment: fixed;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 🔹 Navigasi */
+    nav {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { font-size: 20px; font-weight: 600; color: white; }
+    nav ul { list-style: none; display: flex; gap: 18px; }
+    nav ul li a {
+      text-decoration: none; color: #fff; font-weight: 500; transition: 0.2s;
+    }
+    nav ul li a:hover { color: #0b76ff; }
+    .menu-toggle { display: none; flex-direction: column; cursor: pointer; gap: 5px; }
+    .menu-toggle span {
+      display: block; width: 25px; height: 3px; background: #fff; border-radius: 2px;
+    }
+    @media(max-width:650px) {
+      nav ul {
+        position: absolute; top: 60px; right: 0;
+        background: rgba(0, 0, 0, 0.8); flex-direction: column; width: 180px;
+        box-shadow: var(--shadow); display: none; padding: 10px 20px;
+        transform-origin: top; transform: scaleY(0); opacity: 0;
+        transition: all 0.3s ease;
+      }
+      nav ul.show {
+        display: flex; transform: scaleY(1); opacity: 1;
+      }
+      .menu-toggle { display: flex; }
+    }
+
+    /* Konten utama */
+    .container { width: 100%; max-width: 1100px; text-align: center; padding: 40px 16px; }
+    h1.title { font-size: 38px; margin-bottom: 24px; color: #fff; }
+
+    /* Start screen */
+    .start-screen {
+      background: white; border-radius: var(--radius); padding: 40px 20px;
+      box-shadow: var(--shadow); margin-top: 80px;
+      opacity: 1; transition: opacity 0.6s ease;
+    }
+    .btn-start {
+      background: var(--primary); color: white; border: none;
+      padding: 12px 26px; border-radius: 12px; cursor: pointer; font-size: 16px;
+      transition: all 0.3s ease;
+    }
+    .btn-start:hover { background: #0756c8; transform: scale(1.05); }
+
+    /* Album */
+    .album {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; padding: 20px;
+      opacity: 0; transform: translateY(20px);
+      transition: all 0.8s ease;
+    }
+    .album.fade-in {
+      opacity: 1; transform: translateY(0);
+    }
+
+    .photo {
+      width: 100%;
+      aspect-ratio: 1/1;
+      background-size: cover;
+      background-position: center;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .photo:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    /* Popup Foto */
+    #photoPopup {
+      display: flex; justify-content: center; align-items: center;
+      position: fixed; inset: 0; background: rgba(0,0,0,0);
+      backdrop-filter: blur(0px);
+      visibility: hidden; transition: all 0.4s ease;
+      z-index: 999;
+    }
+    #photoPopup.show {
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      visibility: visible;
+    }
+    #photoPopup img {
+      max-width: 90%; max-height: 90%;
+      border-radius: 12px; transform: scale(0.9);
+      opacity: 0; transition: all 0.4s ease;
+    }
+    #photoPopup.show img { transform: scale(1); opacity: 1; }
+    #photoPopup button {
+      position: absolute; top: 20px; right: 25px;
+      background: red; color: white; border: none;
+      padding: 8px 12px; border-radius: 6px; cursor: pointer;
+      opacity: 0.8; transition: 0.3s;
+    }
+    #photoPopup button:hover { opacity: 1; transform: scale(1.1); }
+
+    /* 🔹 Bagian Slide Bawah */
+    .bottom-slider {
+      position: relative;
+      width: 100%;
+      max-width: 1100px;
+      height: 400px;
+      margin-top: 80px;
+      overflow: hidden;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      background: white;
+      display: none; /* 🔸 Disembunyikan sebelum tombol diklik */
+    }
+
+    .slide {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.8s ease;
+      padding: 30px;
+      color: #111;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .slide-text {
+      flex: 1;
+      padding-right: 20px;
+    }
+
+    .slide-text h2 {
+      font-size: 32px;
+      color: #0b76ff;
+      margin-bottom: 10px;
+    }
+
+    .slide-text p {
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .btn-slide {
+      background: #0b76ff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn-slide:hover {
+      background: #0756c8;
+    }
+
+    .slide img {
+      flex: 1;
+      max-width: 45%;
+      border-radius: 16px;
+      object-fit: cover;
+    }
+
+    @media(max-width:700px) {
+      .slide {
+        flex-direction: column;
+        text-align: center;
+      }
+      .slide img {
+        max-width: 80%;
+        margin-top: 10px;
+      }
+    }
+
+    /* Footer: disembunyikan awalnya */
+    footer {
+      display: none;
+      margin: 40px 0 20px;
+      font-size: 13px;
+      color: #e4e4e4;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    footer.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Album Pelindo PKL 2025</div>
+  <div class="menu-toggle" id="menuToggle"><span></span><span></span><span></span></div>
+  <ul id="navMenu">
+    <li><a href="index.html">Beranda</a></li>
+    <li><a href="">Tentang Umum</a></li>
+    <li><a href="#umum">Album Umum</a></li>
+    <li><a href="#bottomSlider">Album bersama Pembimbing TKJ</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+  <h1 class="title" id="umum">Kenangan PKL</h1>
+
+  <div class="start-screen" id="startScreen">
+    <p>Selamat datang di <b>Album Foto Kenangan</b><br>Klik tombol di bawah untuk melihat kenanganmu.</p>
+    <br>
+    <button class="btn-start" id="showAlbumBtn">Lihat Album</button>
+  </div>
+
+  <audio id="music" src="Banda Neira - Sampai Jadi Debu - Peaceful Piano.mp3" preload="auto"></audio>
+
+  <!-- Album Foto -->
+  <main class="album" id="album" style="display:none;">
+    <div class="card"><div class="photo" style="background-image:url('tkj\ melesat.jpg');" data-url="tkj melesat.jpg"></div></div>
+     <div class="card"><div class="photo" style="background-image:url('tkj\ 2.jpg');" data-url="tkj 2.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('tkj3.jpg');" data-url="tkj3.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('tkj\ 1.jpg');" data-url="tkj 1.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('tkj\ 4.jpg');" data-url="tkj 4.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('tkj\ 6.jpg');" data-url="tkj 6.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('tkj7.jpg');" data-url="tkj7.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('gabut\ 1.JPG');" data-url="gabut 1.JPG"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('gabut\ 2.JPG');" data-url="gabut 2.JPG"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('pak\ nirwan.jpg');" data-url="pak nirwan.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('pak\ anton.jpg');" data-url="pak anton.jpg"></div></div>
+
+    <div class="card"><div class="photo" style="background-image:url('bang\ iwan.jpg');" data-url="bang iwan.jpg"></div></div>
+     <div class="card"><div class="photo" style="background-image:url('bang\ iwan2.jpg');" data-url="bang iwan2.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('bang\ iwan\ 3.jpg');" data-url="bang iwan 3.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('buk\ nurul.jpg');" data-url="buk nurul.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('buk\ nurul\ kak\ ira.jpg');" data-url="buk nurul kak ira.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('kak\ ira.jpg');" data-url="kak ira.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('buk\ erny.jpg');" data-url="buk erny.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('buk\ mate.jpg');" data-url="buk mate.jpg"></div></div>
+
+    <div class="card"><div class="photo" style="background-image:url('wawan.jpg');" data-url="wawan.jpg"></div></div>
+     <div class="card"><div class="photo" style="background-image:url('alung 2.jpg');" data-url="alung 2.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('cs.jpg');" data-url="cs.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('foto\ ti\ gabut.jpg');" data-url="foto ti gabut.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('foto\ umum\ computer.jpg');" data-url="foto umum computer.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('gabut\ umum1.jpg');" data-url="gabut umum1.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('kak\ kuliah.jpg');" data-url="kak kuliah.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('kak\ kuliah\ 2.jpg');" data-url="kak kuliah 2.jpg"></div></div>
+
+    <div class="card"><div class="photo" style="background-image:url('kak\ kuliah\ 3.jpg');" data-url="kak kuliah 3.jpg"></div></div>
+     <div class="card"><div class="photo" style="background-image:url('keuangan.jpg');" data-url="keuangan.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('keuangan\ 2.jpg');" data-url="keuangan 2.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('orang\ sakit\ 1.jpg');" data-url="orang sakit 1.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('orang\ sakit\ 2.jpg');" data-url="orang sakit 2.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('foto\ 1.jpg');" data-url="foto 1.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('foto\ bertiga.jpg');" data-url="foto bertiga.jpg"></div></div>
+
+    <div class="card"><div class="photo" style="background-image:url('pelindo\ mengajar.jpg');" data-url="pelindo mengajar.jpg"></div></div>
+     <div class="card"><div class="photo" style="background-image:url('bang\ dede.jpg');" data-url="bang dede.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('deni.jpg');" data-url="deni.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('erny\ 1.jpg');" data-url="erny 1.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('iwan\ 4.jpg');" data-url="iwan 4.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('iwan\ 5.jpg');" data-url="iwan 5.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('wawan\ 2.jpg');" data-url="wawan 2.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('kak\ kuliah\ 4.jpg');" data-url="kak kuliah 4.jpg"></div></div>
+
+    <div class="card"><div class="photo" style="background-image:url('nirwan\ 2.jpg');" data-url="nirwan 2.jpg"></div></div>
+     <div class="card"><div class="photo" style="background-image:url('kak\ ira\ 2.jpg');" data-url="kak ira 2.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('keuangan3.jpg');" data-url="keuangan3.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('nurul\ 3.jpg');" data-url="nurul 3.jpg"></div></div>
+    <div class="card"><div class="photo" style="background-image:url('anton\ 2.jpg');" data-url="anton 2.jpg"></div></div>
+  <div class="card"><div class="photo" style="background-image:url('suci.jpg');" data-url="suci.jpg"></div></div></main></main>
+
+  <!-- Slide Bawah -->
+  <section class="bottom-slider" id="bottomSlider">
+    <div class="slide active">
+      <div class="slide-text">
+        <h2>ALBUM BERSAMA PEMBIMBING TKJ</h2>
+        <p>Setiap momen selama PKL adalah cerita berharga yang tak akan hilang oleh waktu.</p>
+        <button class="btn-slide">Lihat Galeri</button>
+      </div>
+      <img src="bang iwan.jpg" alt="Kenangan 1">
+    </div>
+
+    <div class="slide">
+      <div class="slide-text">
+        <h2>ALBUM BERSAMA PEMBIMBING TKJ</h2>
+        <p>Tawa, canda, dan kerja sama menjadikan pengalaman PKL semakin menyenangkan.</p>
+        <button class="btn-slide">Lihat Kenangan</button>
+      </div>
+      <img src="iwan 5.jpg" alt="Kenangan 2">
+    </div>
+
+    <div class="slide">
+      <div class="slide-text">
+        <h2>ALBUM BERSAMA PEMBIMBING TKJ</h2>
+        <p>PKL bukan akhir, tapi awal dari perjalanan karier yang penuh semangat.</p>
+        <button class="btn-slide">Jelajahi Lagi</button>
+      </div>
+      <img src="bang iwan2.jpg" alt="Kenangan 3">
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="footer">
+    Album Kenangan PELINDO PKL 2025 – dibuat dengan ❤️.
+  </footer>
+</div>
+
+<!-- Popup Foto -->
+<div id="photoPopup">
+  <button id="closePopup">✖</button>
+  <img src="" alt="Foto besar">
+</div>
+
+<script>
+  // Navigasi responsif
+  const toggle = document.getElementById("menuToggle");
+  const navMenu = document.getElementById("navMenu");
+  toggle.onclick = () => navMenu.classList.toggle("show");
+
+  // Tombol Lihat Album
+  const btn = document.getElementById("showAlbumBtn");
+  const start = document.getElementById("startScreen");
+  const album = document.getElementById("album");
+  const footer = document.getElementById("footer");
+  const slider = document.getElementById("bottomSlider");
+  const music = document.getElementById("music");
+
+  btn.onclick = () => {
+    start.style.opacity = "0";
+    setTimeout(() => {
+      start.style.display = "none";
+      album.style.display = "grid";
+      album.classList.add("fade-in");
+      slider.style.display = "block"; // tampilkan slide
+      footer.classList.add("show"); // tampilkan footer
+    }, 400);
+
+    music.play().catch(() => {
+      const msg = document.createElement("small");
+      msg.textContent = "🎵 Klik tombol lagi untuk menyalakan musik";
+      msg.style.color = "#777";
+      start.appendChild(msg);
+    });
+  };
+
+  // Popup zoom
+  const photos = document.querySelectorAll(".photo");
+  const popup = document.getElementById("photoPopup");
+  const popupImg = popup.querySelector("img");
+  const closeBtn = document.getElementById("closePopup");
+
+  photos.forEach(photo => {
+    photo.onclick = () => {
+      popupImg.src = photo.dataset.url;
+      popup.classList.add("show");
+    };
+  });
+  closeBtn.onclick = () => popup.classList.remove("show");
+  popup.onclick = (e) => { if (e.target === popup) popup.classList.remove("show"); };
+
+  // Slide otomatis
+  let currentSlide = 0;
+  const slides = document.querySelectorAll(".bottom-slider .slide");
+  function showSlide(index) {
+    slides.forEach((s, i) => s.classList.toggle("active", i === index));
+  }
+  setInterval(() => {
+    currentSlide = (currentSlide + 1) % slides.length;
+    showSlide(currentSlide);
+  }, 5000);
+</script>
+</body>
+</html>
